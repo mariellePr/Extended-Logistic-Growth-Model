@@ -1,0 +1,1 @@
+# logistic_growth_eq_cmvd
