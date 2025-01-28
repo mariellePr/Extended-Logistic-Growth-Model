@@ -281,6 +281,9 @@ if __name__=='__main__':
         ref_15_time = data_df['Time'].to_numpy()
         ref_15_data = data_df['Data'].to_numpy()
         
+        if 'Wright' in label:
+            ref_15_data =  ref_15_data*1e-9
+        
         
         # Fit the model_1
         popt_ref_15, pcov_ref_15 = curve_fit(
@@ -310,7 +313,7 @@ if __name__=='__main__':
             ref_15_time,
             ref_15_data,
             p0=[0.4, 0.02, 0.5, 0.01, 0.36],  # Initial guess for a, b, c, m, x0
-            bounds=(0, [1, 1, 2, 1, 1])  # Bounds for a, b, c, m, x0 # Bounds for a, b, m, x0
+            bounds=(0, [5, 5, 5, 5, 5])  # Bounds for a, b, c, m, x0 # Bounds for a, b, m, x0
         )
         
       
