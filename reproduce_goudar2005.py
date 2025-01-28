@@ -304,7 +304,7 @@ if __name__=='__main__':
         
         ax.scatter(ref_15_time,ref_15_data,color = 'k', marker = 'o',
                          label = 'Data')
-        ax.plot(t_fine,x_fit_ref_15,'-b', label = 'cmvd model 1' + r'$a \cdot x \cdot e^{-b \cdot \int} - m \cdot x$')
+        ax.plot(t_fine,x_fit_ref_15,'-b', label =  f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}')
         
         
         # Fit the model_2
@@ -327,7 +327,7 @@ if __name__=='__main__':
                                    x0=x0_fit_ref_15, integral0=0.0)
         
        
-        ax.plot(t_fine,x_fit_ref_15,'-r', label = 'cmvd model 2' + r'$a \cdot x \cdot \frac{1}{1 + c \cdot e^{b \cdot \int}} - m \cdot x$')
+        ax.plot(t_fine,x_fit_ref_15,'-r', label = f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, c={c_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}')
         
         
         # Add labels and title
