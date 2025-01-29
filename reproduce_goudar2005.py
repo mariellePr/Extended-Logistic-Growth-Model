@@ -18,6 +18,47 @@ import matplotlib.pyplot as plt
 # =============================================================================
 # FUNCTIONS
 # =============================================================================
+
+def compute_aic_and_rmse(data, sol, k):
+    """
+    Computes the AIC, RMSE, and estimates sigma between observed data and model solution.
+    
+    Parameters:
+    - data: Observed data vector
+    - sol: Model solution vector (must be the same length as data)
+    - k: Number of parameters in the model
+    
+    - AIC value
+    - RMSE value
+    - Estimated sigma
+    """
+    # Ensure data and solution are numpy arrays
+    data = np.asarray(data)
+    sol = np.asarray(sol)
+
+    # Compute residuals
+    residuals = data - sol
+    
+    # Number of data points
+    n = len(data)
+    
+    # print('k = ',k, 'n = ',n, 'sol =',sol,'data = ', data)
+    # Estimate variance of residuals (degrees of freedom: n - k)
+    variance = np.sum(residuals ** 2) / (n - k)
+    
+    # Estimate standard deviation (sigma)
+    sigma = np.sqrt(variance)
+    
+    # Compute log-likelihood assuming Gaussian residuals
+    log_likelihood = -0.5 * np.sum((residuals / sigma) ** 2 + np.log(2 * np.pi * sigma ** 2))
+
+    # AIC formula: 2k - 2 * log-likelihood
+    aic = 2 * k - 2 * log_likelihood
+    
+    # RMSE calculation: root mean squared error
+    rmse = np.sqrt(np.mean(residuals ** 2))
+    
+    return aic, rmse, sigma
 def get_data():
     
     # obtained with: https://automeris.io/wpd/ from goudar2005 figure 6
@@ -302,9 +343,15 @@ if __name__=='__main__':
         x_fit_ref_15 = solve_model_1(t_fine, a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, 
                                    x0=x0_fit_ref_15, integral0=0.0)
         
+        x_fit_short = solve_model_1(ref_15_time, a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, 
+                                   x0=x0_fit_ref_15, integral0=0.0)
+        
+        
         ax.scatter(ref_15_time,ref_15_data,color = 'k', marker = 'o',
                          label = 'Data')
-        ax.plot(t_fine,x_fit_ref_15,'-b', label =  f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}')
+        
+        aic_1, rmse_1, sigma_1 = compute_aic_and_rmse(ref_15_data, x_fit_short, 3)
+        ax.plot(t_fine,x_fit_ref_15,'-b', label =  f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}\n AIC ={aic_1:.3f}')
         
         
         # Fit the model_2
@@ -326,8 +373,13 @@ if __name__=='__main__':
         x_fit_ref_15 = solve_model_2(t_fine, a_fit_ref_15, b_fit_ref_15,c_fit_ref_15, m_fit_ref_15, 
                                    x0=x0_fit_ref_15, integral0=0.0)
         
+        x_fit_short = solve_model_2(ref_15_time, a_fit_ref_15, b_fit_ref_15,c_fit_ref_15, m_fit_ref_15, 
+                                   x0=x0_fit_ref_15, integral0=0.0)
+        
+        aic_2, rmse_2, sigma_2 = compute_aic_and_rmse(ref_15_data, x_fit_short, 4)
+        
        
-        ax.plot(t_fine,x_fit_ref_15,'-r', label = f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, c={c_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}')
+        ax.plot(t_fine,x_fit_ref_15,'-r', label = f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, c={c_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}\n AIC ={aic_2:.3f}')
         
         
         # Add labels and title
