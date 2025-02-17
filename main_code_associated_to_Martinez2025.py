@@ -5,7 +5,7 @@ Created on Mon Feb 17 09:25:11 2025
 
 @author: Marielle Péré, Carlos Martinez Von Dossow
 
-This code is associated to the submitted manuscript A Single Population Approach to Modeling Growth and Decay in Batch Bioreactors", Carlos Matinez von Dossow, Marielle Péré.
+This code is associated to the submitted manuscript "A Single Population Approach to Modeling Growth and Decay in Batch Bioreactors", Carlos Matinez von Dossow, Marielle Péré.
 
 Its purpose is to calibrate the models presented in this paper to data from different studies on batch culture.
 """
