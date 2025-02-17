@@ -1,4 +1,4 @@
-# logistic_growth_eq_cmvd
+# Extended Logistic Growth Model
 This Python code is associated to the submitted manuscript "A Single Population Approach to Modeling Growth and Decay in Batch Bioreactors", Carlos Matinez von Dossow, Marielle Péré.
 It runs on Python 3.12 and uses Matplotlib, Scipy, NUmpy and Pandas libraries.
 
