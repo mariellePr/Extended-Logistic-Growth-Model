@@ -10,17 +10,10 @@ It organizes data from 6 different papers:
  * Amrane, 1998,
 and presents the corresponding calibration of model M1 and M2 results.
 
-Therefore three figures are generated:
- * Figure 3 of the paper 
+Therefore two figures are generated:
+ * Figure 3 and 4 of the paper 
 ![Figure3](images/Figure_3.png)  
- 
- 
- 
- * Figure 4 of the paper
+
 ![Figure4](images/Figure_4.png)
- 
- * An additionnal figure, including calibration of the models for data from the 6 articles presented above.
- ![additionnal_figure](images/Additionnal_figure.png)
- 
  
 The code is organized in three parts: Import, Functions and Main with a function per figure named accordingly. 
