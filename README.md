@@ -5,7 +5,7 @@ DOI: [10.5281/zenodo.15240209](https://doi.org/10.5281/zenodo.15240208).
 
 It runs on Python 3.12 and uses Matplotlib, Scipy, NUmpy and Pandas libraries.
 
-Its purpose is to calibrate the models presented in this paper to data from different studies on batch culture.
+Its purpose is to calibrate the models of cell proliferation in batch and fed-batch bioreactors presented in this paper to data from different studies on batch culture of different cell lines.
 It organizes data from 6 different papers:
  * Ljumggren, 1994 (from Goudar, 2005),
  * Linz, 1997 (from Goudar, 2005),
