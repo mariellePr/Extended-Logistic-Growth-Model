@@ -24,7 +24,31 @@ from scipy import stats
 # FUNCTIONS
 # =============================================================================
 def compute_calibration_metrics(t_eval,X_data, model_to_fit, popt,pcov,names  = ['a','b','c','m','x0']):
-    # 6) Estimate residual‐based σ and rescale covariance
+    """
+    Compute different metrics to evaluate quality of fit
+
+    Parameters
+    ----------
+    t_eval : numpy vector
+        Time vector
+    X_data : numpy vector
+        Data vector
+    model_to_fit : Python function
+        Model calibrated.
+    popt : list
+        List of estimated parameters.
+    pcov : numpy matrix
+        Covariance matrix.
+    names : List of str,
+        List of parameters names. The default is ['a','b','c','m','x0'].
+
+    Returns
+    -------
+    str
+        Legend for plotting model containing AIC and RMSE.
+
+    """
+    
     fitted = model_to_fit(t_eval, *popt)
     resid   = X_data - fitted
     N, P    = X_data.size, popt.size
