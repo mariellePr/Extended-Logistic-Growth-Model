@@ -25,7 +25,7 @@ from scipy import stats
 # =============================================================================
 def compute_calibration_metrics(t_eval,X_data, model_to_fit, popt,pcov,names  = ['a','b','c','m','x0']):
     """
-    Compute different metrics to evaluate quality of fit
+    Compute different metrics to evaluate quality of fit.
 
     Parameters
     ----------
@@ -573,7 +573,7 @@ def figure_3():
 
     """
     dict_data = get_data()
-    fig, axs = plt.subplots(2,2, figsize =(8,11/3), sharex='col') 
+    fig, axs = plt.subplots(2,2, figsize =(8,11*2/3), sharex='col') 
     for i,((label, data_df)) in enumerate(dict_data.items()):
         if i < 2:
             print(label,'\n')
@@ -893,7 +893,7 @@ def supplementary_figure_all_data():
                                     model_to_fit = solve_model_2_with_null_cumulative_biomass,
                                     popt = popt_ref_15,
                                     pcov = pcov_ref_15,
-                                    names  = ['a','b','C','m','x0'])
+                                    names  = ['a','b','c','m','x0'])
        
         
         # Extract fitted parameters for T=30 and T=25
