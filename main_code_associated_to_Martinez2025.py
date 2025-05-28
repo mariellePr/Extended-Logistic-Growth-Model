@@ -33,6 +33,13 @@ def compute_calibration_metrics(t_eval,X_data, model_to_fit, popt,pcov,names  = 
     σ       = np.sqrt(σ2)
     pcov    = pcov * σ2
     
+    # Compute R²
+    ss_res = np.sum((X_data - fitted) ** 2)
+    ss_tot = np.sum((X_data - np.mean(X_data)) ** 2)
+    r2 = 1 - (ss_res / ss_tot)
+    
+  
+    
     # 7) Standard errors and 95 % t‐intervals
     perr   = np.sqrt(np.diag(pcov))
     alpha  = 0.05
@@ -44,7 +51,7 @@ def compute_calibration_metrics(t_eval,X_data, model_to_fit, popt,pcov,names  = 
     
    
     print(f"\nEstimation of\nσ = {σ:.4f},\ndof = {dof},\nt₀.₉₇₅ = {tval:.3f}")
-    print(f'AIC = {aic_1},\nRMSE = {rmse_1}')
+    print(f'AIC = {aic_1},\nRMSE = {rmse_1},\nR² = {r2:.3f}')
     print("\nParam.   Value    stderr    IC 95%")
     for nm, pv, err, ci in zip(names, popt, perr, ci95):
         lo, hi = pv - ci, pv + ci
@@ -630,7 +637,7 @@ def figure_3():
             aic_2, rmse_2, sigma_2 = compute_aic_and_rmse(ref_15_data, x_fit_short, 4)
             
            
-            axs[1,i].plot(t_fine,x_fit_ref_15,'--r', label = legend_model_2)
+            axs[1,i].plot(t_fine,x_fit_ref_15,'r', label = legend_model_2)
             
             
             # Add labels and title
