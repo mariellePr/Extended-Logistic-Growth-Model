@@ -18,10 +18,39 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+from scipy import stats
 
 # =============================================================================
 # FUNCTIONS
 # =============================================================================
+def compute_calibration_metrics(t_eval,X_data, model_to_fit, popt,pcov,names  = ['a','b','c','m','x0']):
+    # 6) Estimate residual‐based σ and rescale covariance
+    fitted = model_to_fit(t_eval, *popt)
+    resid   = X_data - fitted
+    N, P    = X_data.size, popt.size
+    dof     = N - P
+    σ2      = np.sum(resid**2) / dof
+    σ       = np.sqrt(σ2)
+    pcov    = pcov * σ2
+    
+    # 7) Standard errors and 95 % t‐intervals
+    perr   = np.sqrt(np.diag(pcov))
+    alpha  = 0.05
+    tval   = stats.t.ppf(1 - alpha/2, dof)
+    ci95   = tval * perr
+    
+    # AIC/RMSE
+    aic_1, rmse_1, sigma_1 = compute_aic_and_rmse(X_data, fitted, len(names))
+    
+   
+    print(f"\nEstimation of\nσ = {σ:.4f},\ndof = {dof},\nt₀.₉₇₅ = {tval:.3f}")
+    print(f'AIC = {aic_1},\nRMSE = {rmse_1}')
+    print("\nParam.   Value    stderr    IC 95%")
+    for nm, pv, err, ci in zip(names, popt, perr, ci95):
+        lo, hi = pv - ci, pv + ci
+        print(f"{nm:>4s}     {pv:7.4f}  {err:7.4f}   [{lo:7.4f}, {hi:7.4f}]")
+    print('------------')
+    return f'AIC = {aic_1:.3f}\nRMSE = {rmse_1:.3f}'
 
 def compute_aic_and_rmse(data, sol, k):
     """
@@ -513,96 +542,133 @@ def figure_3():
 
     """
     dict_data = get_data()
-    fig, axs = plt.subplots(1,2, figsize =(8,11/3)) 
-    for i,((label, data_df), ax) in enumerate(zip(dict_data.items(), axs.flat[:2])):
-        print(label,'\n')
-    
-        ref_15_time = data_df['Time'].to_numpy()
-        ref_15_data = data_df['Data'].to_numpy()
+    fig, axs = plt.subplots(2,2, figsize =(8,11/3), sharex='col') 
+    for i,((label, data_df)) in enumerate(dict_data.items()):
+        if i < 2:
+            print(label,'\n')
         
-        if 'Wright' in label:
-            ref_15_data =  ref_15_data*1e-9
-        
-        
-        # Fit the model_1
-        popt_ref_15, pcov_ref_15 = curve_fit(
-            lambda t, a, b, m, x0: solve_model_1_with_null_cumulative_biomass(t, a, b, m, x0),
-            ref_15_time,
-            ref_15_data,
-            p0=[0.4, 0.02, 0.01, 0.36],  # Initial guess for a, b, m, x0
-            bounds=(0, [5, 1, 1, 1])  # Bounds for a, b, m, x0
-        )
-        
-        # Extract fitted parameters for T=30 and T=25
-        a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, x0_fit_ref_15 = popt_ref_15
-        
-        # Solve the model with fitted parameters
-        t_fine = np.linspace(0, ref_15_time[-1], 500)
-        x_fit_ref_15 = solve_model_1(t_fine, a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, 
-                                   x0=x0_fit_ref_15, integral0=0.0)
-        
-        x_fit_short = solve_model_1(ref_15_time, a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, 
-                                   x0=x0_fit_ref_15, integral0=0.0)
-        
-        
-        ax.scatter(ref_15_time,ref_15_data,color = 'k', marker = 'o',
-                         label = '_Data')
-        
-        aic_1, rmse_1, sigma_1 = compute_aic_and_rmse(ref_15_data, x_fit_short, 3)
-        ax.plot(t_fine,x_fit_ref_15,'-b', label =  f'Model 1: {aic_1:.3f}')
-        
-        print('Model 1:',f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}\n AIC ={aic_1:.3f}')
-        
-        # Fit the model_2
-        popt_ref_15, pcov_ref_15 = curve_fit(
-            lambda t, a, b, c,m, x0: solve_model_2_with_null_cumulative_biomass(t, a, b,c, m, x0),
-            ref_15_time,
-            ref_15_data,
-            p0=[0.4, 0.02, 0.5, 0.01, 0.36],  # Initial guess for a, b, c, m, x0
-            bounds=(0, [10, 5, 5, 5, 5])  # Bounds for a, b, c, m, x0 # Bounds for a, b, m, x0
-        )
-        
-      
-        
-        # Extract fitted parameters for T=30 and T=25
-        a_fit_ref_15, b_fit_ref_15, c_fit_ref_15, m_fit_ref_15, x0_fit_ref_15 = popt_ref_15
-        
-        # Solve the model with fitted parameters
-        t_fine = np.linspace(0, ref_15_time[-1], 500)
-        x_fit_ref_15 = solve_model_2(t_fine, a_fit_ref_15, b_fit_ref_15,c_fit_ref_15, m_fit_ref_15, 
-                                   x0=x0_fit_ref_15, integral0=0.0)
-        
-        x_fit_short = solve_model_2(ref_15_time, a_fit_ref_15, b_fit_ref_15,c_fit_ref_15, m_fit_ref_15, 
-                                   x0=x0_fit_ref_15, integral0=0.0)
-        
-        aic_2, rmse_2, sigma_2 = compute_aic_and_rmse(ref_15_data, x_fit_short, 4)
-        
-       
-        ax.plot(t_fine,x_fit_ref_15,'--r', label = f'Model 2: {aic_2:.3f}')
-        
-        
-        # Add labels and title
-        ylabel =  data_df['ylabel'].drop_duplicates().to_list()[0]
-        xlabel =  data_df['xlabel'].drop_duplicates().to_list()[0]
-        ax.set_xlabel('Time (h)')
-        ax.set_ylabel(ylabel)
-        if i==0:
-            ax.set_xticks([0,24,48,72,24*4])
-            max_y = max(line.get_ydata().max() for line in ax.lines)
-            ax.text(0,max_y-0.05*max_y,'A', fontweight = 'bold', fontsize = 12)
-        else:
-            ax.set_xticks([0,2,4,6,8],[0,48,24*4,24*6,24*8])
-            max_y = max(line.get_ydata().max() for line in ax.lines)
-            ax.text(0,max_y-0.05*max_y,'B', fontweight = 'bold', fontsize = 12)
-        # ax.set_title(label)
-        ax.legend(title = 'AIC', loc = 'lower right', title_fontproperties={'weight':'bold'})
-        ax.grid()
-        
-        print('Model 2:',f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, c={c_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}\n AIC ={aic_2:.3f}')
-        print('\n')
+            ref_15_time = data_df['Time'].to_numpy()
+            ref_15_data = data_df['Data'].to_numpy()
+            
+            if 'Wright' in label:
+                ref_15_data =  ref_15_data*1e-9
+            
+            
+            # Fit the model_1
+            popt_ref_15, pcov_ref_15 = curve_fit(
+                lambda t, a, b, m, x0: solve_model_1_with_null_cumulative_biomass(t, a, b, m, x0),
+                ref_15_time,
+                ref_15_data,
+                p0=[0.4, 0.02, 0.01, 0.36],  # Initial guess for a, b, m, x0
+                bounds=(0, [5, 1, 1, 1])  # Bounds for a, b, m, x0
+            )
+            
+            print('Metrics for Model 1')
+            legend_model_1 = compute_calibration_metrics(t_eval = ref_15_time,
+                                        X_data = ref_15_data, 
+                                        model_to_fit = solve_model_1_with_null_cumulative_biomass,
+                                        popt = popt_ref_15,
+                                        pcov = pcov_ref_15,
+                                        names  = ['a','b','m','x0'])
+            
+            
+            # Extract fitted parameters for T=30 and T=25
+            a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, x0_fit_ref_15 = popt_ref_15
+            
+            # Solve the model with fitted parameters
+            t_fine = np.linspace(0, ref_15_time[-1], 500)
+            x_fit_ref_15 = solve_model_1(t_fine, a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, 
+                                       x0=x0_fit_ref_15, integral0=0.0)
+            
+            x_fit_short = solve_model_1(ref_15_time, a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, 
+                                       x0=x0_fit_ref_15, integral0=0.0)
+            
+            
+            axs[0,i].scatter(ref_15_time,ref_15_data,color = 'k', marker = 'o',
+                             label = '_Data')
+            axs[1,i].scatter(ref_15_time,ref_15_data,color = 'k', marker = 'o',
+                             label = '_Data')
+            
+            aic_1, rmse_1, sigma_1 = compute_aic_and_rmse(ref_15_data, x_fit_short, 3)
+            from matplotlib.patches import Patch
+            axs[0,i].plot(t_fine,x_fit_ref_15,'-b',label =   legend_model_1)
+            from matplotlib.lines import Line2D
+            custom_legend = [Line2D([0], [0], color='none', label=legend_model_1)]
+
+            axs[0,i].legend(handles=custom_legend)
+            
+            
+            # Fit the model_2
+            popt_ref_15, pcov_ref_15 = curve_fit(
+                lambda t, a, b, c,m, x0: solve_model_2_with_null_cumulative_biomass(t, a, b,c, m, x0),
+                ref_15_time,
+                ref_15_data,
+                p0=[0.4, 0.02, 0.5, 0.01, 0.36],  # Initial guess for a, b, c, m, x0
+                bounds=(0, [10, 5, 5, 5, 5])  # Bounds for a, b, c, m, x0 # Bounds for a, b, m, x0
+            )
+            
+            print('Metrics for Model 2')
+            legend_model_2 = compute_calibration_metrics(t_eval = ref_15_time,
+                                        X_data = ref_15_data, 
+                                        model_to_fit = solve_model_2_with_null_cumulative_biomass,
+                                        popt = popt_ref_15,
+                                        pcov = pcov_ref_15,
+                                        names  = ['a','b','c','m','x0'])
+            
+            
+            # Extract fitted parameters for T=30 and T=25
+            a_fit_ref_15, b_fit_ref_15, c_fit_ref_15, m_fit_ref_15, x0_fit_ref_15 = popt_ref_15
+            
+            # Solve the model with fitted parameters
+            t_fine = np.linspace(0, ref_15_time[-1], 500)
+            x_fit_ref_15 = solve_model_2(t_fine, a_fit_ref_15, b_fit_ref_15,c_fit_ref_15, m_fit_ref_15, 
+                                       x0=x0_fit_ref_15, integral0=0.0)
+            
+            x_fit_short = solve_model_2(ref_15_time, a_fit_ref_15, b_fit_ref_15,c_fit_ref_15, m_fit_ref_15, 
+                                       x0=x0_fit_ref_15, integral0=0.0)
+            
+            aic_2, rmse_2, sigma_2 = compute_aic_and_rmse(ref_15_data, x_fit_short, 4)
+            
+           
+            axs[1,i].plot(t_fine,x_fit_ref_15,'--r', label = legend_model_2)
+            
+            
+            # Add labels and title
+            ylabel =  data_df['ylabel'].drop_duplicates().to_list()[0]
+            xlabel =  data_df['xlabel'].drop_duplicates().to_list()[0]
+            axs[0,0].set_title('Model 1', fontweight = 'bold')
+            axs[0,1].set_title('Model 2', fontweight = 'bold')
+            
+            
+            
+            
+            for row in range(2):
+                axs[row,i].set_xlabel('Time (h)')
+                axs[row,i].set_ylabel(ylabel)
+                    
+                
+                if i==0:
+                    axs[row,i].set_xticks([0,24,48,72,24*4])
+                    max_y = max(line.get_ydata().max() for line in axs[0,0].lines)
+                    axs[0,0].text(-0.1,max_y-0.05*max_y-0.05,'A', fontweight = 'bold', fontsize = 12)
+                    
+                    
+                else:
+                    axs[row,i].set_xticks([0,2,4,6,8],[0,48,24*4,24*6,24*8])
+                    max_y = max(line.get_ydata().max() for line in axs[0,1].lines)
+                    axs[0,1].text(-0.10,max_y-0.05*max_y-0.1,'B', fontweight = 'bold', fontsize = 12)
+                    
+                    
+                # ax.set_title(label)
+                axs[row,i].legend(title = 'Metrics', loc = 'lower right', title_fontproperties={'weight':'bold'})
+                axs[row,i].grid()
+            
+            # print('Model 2:',f'a = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f}, c={c_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}\n AIC ={aic_2:.3f}')
+            print('\n')
     # Show the plot
     fig.tight_layout()
     fig.show()
+   
     
 
 def figure_4():
@@ -656,6 +722,14 @@ def figure_4():
         bounds=(0, [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3])  # Bounds for the parameters
     )
     
+    print('Metrics for Model 2')
+    legend_model_1 = compute_calibration_metrics(t_eval = combined_time,
+                                X_data = combined_x, 
+                                model_to_fit = fit_model,
+                                popt = popt,
+                                pcov = pcov,
+                                names  = ['a','b','m','c1', 'x0_1', 'c2', 'x0_2', 'c3', 'x0_3', 'c4', 'x0_4'])
+    
     # Extract fitted parameters
     a_fit, b_fit, m_fit, c1_fit, x0_1_fit, c2_fit, x0_2_fit, c3_fit, x0_3_fit, c4_fit, x0_4_fit = popt
     # Perform the curve fitting
@@ -704,8 +778,8 @@ def figure_4():
     #google.colab.files.download(filename)
     
     # Print fitted parameters
-    print(f"Fitted parameters: a = {a_fit:.4f} h-1, b = {b_fit:.4f} g-1 L h-1, m = {m_fit:.4f} h-1")
-    print(f"S0=5 g/L: c = {c4_fit:.4f}, x0 = {x0_4_fit:.4f} g/L")
+    print(f"\nFitted parameters:\na = {a_fit:.4f} h-1,\nb = {b_fit:.4f} g-1 L h-1,\nm = {m_fit:.4f} h-1")
+    print(f"\nS0=5 g/L: c = {c4_fit:.4f}, x0 = {x0_4_fit:.4f} g/L")
     print(f"S0=10 g/L: c = {c1_fit:.4f}, x0 = {x0_1_fit:.4f} g/L")
     print(f"S0=20 g/L: c = {c2_fit:.4f}, x0 = {x0_2_fit:.4f} g/L")
     print(f"S0=2 g/L: c = {c3_fit:.4f}, x0 = {x0_3_fit:.4f} g/L")
@@ -729,7 +803,8 @@ def supplementary_figure_all_data():
     dict_data = get_data()
     fig, axs = plt.subplots(len(dict_data.keys())//4 +1,4, figsize =(16,11)) 
     for (label, data_df), ax in zip(dict_data.items(), axs.flat):
-    
+        print('--------------------------------------------')
+        print('Data from: ', label)
         ref_15_time = data_df['Time'].to_numpy()
         ref_15_data = data_df['Data'].to_numpy()
         
@@ -745,6 +820,13 @@ def supplementary_figure_all_data():
             p0=[0.4, 0.02, 0.01, 0.36],  # Initial guess for a, b, m, x0
             bounds=(0, [5, 1, 1, 1])  # Bounds for a, b, m, x0
         )
+        print('Metrics for Model 1')
+        legend_model_1 = compute_calibration_metrics(t_eval = ref_15_time,
+                                    X_data = ref_15_data, 
+                                    model_to_fit = solve_model_1_with_null_cumulative_biomass,
+                                    popt = popt_ref_15,
+                                    pcov = pcov_ref_15,
+                                    names  = ['a','b','m','x0'])
         
         # Extract fitted parameters for T=30 and T=25
         a_fit_ref_15, b_fit_ref_15, m_fit_ref_15, x0_fit_ref_15 = popt_ref_15
@@ -761,7 +843,7 @@ def supplementary_figure_all_data():
         ax.scatter(ref_15_time,ref_15_data,color = 'k', marker = 'o',
                          label = 'Data')
         
-        aic_1, rmse_1, sigma_1 = compute_aic_and_rmse(ref_15_data, x_fit_short, 3)
+        aic_1, rmse_1, sigma_1 = compute_aic_and_rmse(ref_15_data, x_fit_short, 4)
         ax.plot(t_fine,x_fit_ref_15,'-b', label =  f'Model 1:\na = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f},\nm={m_fit_ref_15:.3f}\nAIC ={aic_1:.3f}')
         
         
@@ -774,7 +856,14 @@ def supplementary_figure_all_data():
             bounds=(0, [10, 5, 5, 5, 5])  # Bounds for a, b, c, m, x0 # Bounds for a, b, m, x0
         )
         
-      
+        print('Metrics for Model 2')
+        legend_model_1 = compute_calibration_metrics(t_eval = ref_15_time,
+                                    X_data = ref_15_data, 
+                                    model_to_fit = solve_model_2_with_null_cumulative_biomass,
+                                    popt = popt_ref_15,
+                                    pcov = pcov_ref_15,
+                                    names  = ['a','b','C','m','x0'])
+       
         
         # Extract fitted parameters for T=30 and T=25
         a_fit_ref_15, b_fit_ref_15, c_fit_ref_15, m_fit_ref_15, x0_fit_ref_15 = popt_ref_15
@@ -787,7 +876,7 @@ def supplementary_figure_all_data():
         x_fit_short = solve_model_2(ref_15_time, a_fit_ref_15, b_fit_ref_15,c_fit_ref_15, m_fit_ref_15, 
                                    x0=x0_fit_ref_15, integral0=0.0)
         
-        aic_2, rmse_2, sigma_2 = compute_aic_and_rmse(ref_15_data, x_fit_short, 4)
+        aic_2, rmse_2, sigma_2 = compute_aic_and_rmse(ref_15_data, x_fit_short, 5)
         
        
         ax.plot(t_fine,x_fit_ref_15,'-r', label = f'Model 2:\na = {a_fit_ref_15:.3f}, b={b_fit_ref_15:.3f},\nc={c_fit_ref_15:.3f}, m={m_fit_ref_15:.3f}\nAIC ={aic_2:.3f}')
