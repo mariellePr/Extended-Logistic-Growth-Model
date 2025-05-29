@@ -681,13 +681,15 @@ def figure_3():
                 if i==0:
                     axs[row,i].set_xticks([0,24,48,72,24*4])
                     max_y = max(line.get_ydata().max() for line in axs[0,0].lines)
-                    axs[0,0].text(-0.1,max_y-0.05*max_y-0.05,'A', fontweight = 'bold', fontsize = 12)
+                    axs[0,0].text(-0.1,max_y-0.05*max_y,'A', fontweight = 'bold', fontsize = 12)
+                    axs[1,0].text(-0.1,max_y-0.05*max_y,'C', fontweight = 'bold', fontsize = 12)
                     
                     
                 else:
                     axs[row,i].set_xticks([0,2,4,6,8],[0,48,24*4,24*6,24*8])
                     max_y = max(line.get_ydata().max() for line in axs[0,1].lines)
-                    axs[0,1].text(-0.10,max_y-0.05*max_y-0.1,'B', fontweight = 'bold', fontsize = 12)
+                    axs[0,1].text(-0.10,max_y-0.05*max_y,'B', fontweight = 'bold', fontsize = 12)
+                    axs[1,1].text(-0.10,max_y-0.05*max_y,'D', fontweight = 'bold', fontsize = 12)
                     
                     
                 # ax.set_title(label)
