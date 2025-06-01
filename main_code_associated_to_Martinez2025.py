@@ -173,17 +173,17 @@ def get_data():
 
 
      # obtained with: https://automeris.io/wpd/ from goudar2005 figure 5
-    ref_14_time=[0.06593988819996532,
-        0.88248924419287,
-        1.445553651609095,
-        1.955286692979131, 
-        2.4510162267656117,
-        2.8693240691993243, 
-        3.982790708592236, 
-        4.923386461264003, 
-        5.4346217946353415, 
-        6.491028164621693, 
-        7.027265929157541 ]
+    ref_14_time=[0.06593988819996532*24,
+        0.88248924419287*24,
+        1.445553651609095*24,
+        1.955286692979131*24, 
+        2.4510162267656117*24,
+        2.8693240691993243*24, 
+        3.982790708592236*24, 
+        4.923386461264003*24, 
+        5.4346217946353415*24, 
+        6.491028164621693*24, 
+        7.027265929157541 *24]
      
     ref_14_data=[ 0.27997793508623103,
          0.342359939774187,
@@ -676,17 +676,18 @@ def figure_3():
             for row in range(2):
                 axs[row,i].set_xlabel('Time (h)')
                 axs[row,i].set_ylabel(ylabel)
-                    
+                
                 
                 if i==0:
-                    axs[row,i].set_xticks([0,24,48,72,24*4])
+                    axs[row,i].set_xticks([0,24,48,72,24*4])  
                     max_y = max(line.get_ydata().max() for line in axs[0,0].lines)
                     axs[0,0].text(-0.1,max_y-0.05*max_y,'A', fontweight = 'bold', fontsize = 12)
                     axs[1,0].text(-0.1,max_y-0.05*max_y,'C', fontweight = 'bold', fontsize = 12)
                     
                     
                 else:
-                    axs[row,i].set_xticks([0,2,4,6,8],[0,48,24*4,24*6,24*8])
+                    axs[row,i].set_xticks([0,24,48,72,24*4,24*5,24*6,24*7,24*8])  
+                    # axs[row,i].set_xticks([0,2,4,6,8],[0,48,24*4,24*6,24*8])
                     max_y = max(line.get_ydata().max() for line in axs[0,1].lines)
                     axs[0,1].text(-0.10,max_y-0.05*max_y,'B', fontweight = 'bold', fontsize = 12)
                     axs[1,1].text(-0.10,max_y-0.05*max_y,'D', fontweight = 'bold', fontsize = 12)
