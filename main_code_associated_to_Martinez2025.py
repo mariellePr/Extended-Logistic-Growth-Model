@@ -81,7 +81,7 @@ def compute_calibration_metrics(t_eval,X_data, model_to_fit, popt,pcov,names  = 
         lo, hi = pv - ci, pv + ci
         print(f"{nm:>4s}     {pv:7.4f}  {err:7.4f}   [{lo:7.4f}, {hi:7.4f}]")
     print('------------')
-    return f'AIC = {aic_1:.3f}\nRMSE = {rmse_1:.3f}'
+    return f'AIC = {aic_1:.3f}\nRMSE = {rmse_1:.3f}',aic_1, rmse_1,r2
 
 def compute_aic_and_rmse(data, sol, k):
     """
@@ -435,6 +435,43 @@ def solve_model_1(t_eval, a, b, m, x0, integral0):
     )
     return sol.y[0]  # Return only the population (x)
 
+def solve_model1_full(t_eval, a, b, m, x0, integral0=0.0):
+    """
+    Solve model M1 using given parameters a,b and m, initial condition x0 and integral0 for time t_eval.
+
+    Parameters
+    ----------
+    t_eval : numpy array
+        Time vector
+    a : Positive double
+        Growth rate.
+    b : Positive double
+        Combination of parameter.
+    m : Positive double
+        Maintenance Rate.
+    x0 : double
+        Initial condition for biomass.
+    integral0 : double
+        Initial condition for cumulative biomass.
+
+    Returns
+    -------
+    numpy vector
+        Biomass value, solution of model M1 at time t_eval.
+
+    """
+    t_span = (t_eval[0], t_eval[-1])
+    y0 = [x0, integral0]  # Initial conditions: [x, integral]
+
+    sol = solve_ivp(
+        lambda t, y: integro_differential_model_1(t, y, a, b, m),
+        t_span,
+        y0,
+        t_eval=t_eval,
+        method='RK45'
+    )
+    return sol.y  # Return only the population (x)
+
 # Define a function for curve fitting
 def solve_model_1_with_null_cumulative_biomass(t, a, b, m, x0):
     """
@@ -534,6 +571,45 @@ def solve_model_2(t_eval, a, b,c, m, x0, integral0):
     )
     return sol.y[0]  # Return only the population (x)
 
+def solve_model2_full(t_eval, a, b,c, m, x0, integral0=0.0):
+    """
+    Solve model M2 using given parameters a,b and m, initial condition x0 and integral0 for time t_eval.
+
+    Parameters
+    ----------
+    t_eval : numpy array
+        Time vector
+    a : Positive double
+        Growth rate.
+    b : Positive double
+        Combination of parameter.
+    c: Positive double
+         Dimensionless parameter.   
+    m : Positive double
+        Maintenance Rate.
+    x0 : double
+        Initial condition for biomass.
+    integral0 : double
+        Initial condition for cumulative biomass.
+
+    Returns
+    -------
+    numpy vector
+        Biomass value, solution of model M2 at time t_eval.
+
+    """
+    t_span = (t_eval[0], t_eval[-1])
+    y0 = [x0, integral0]  # Initial conditions: [x, integral]
+
+    sol = solve_ivp(
+        lambda t, y: integro_differential_model_2(t, y, a, b,c, m),
+        t_span,
+        y0,
+        t_eval=t_eval,
+        method='RK45'
+    )
+    return sol.y  # Return only the population (x)
+
 # Define a function for curve fitting
 def solve_model_2_with_null_cumulative_biomass(t, a, b, c,m, x0):
     """
@@ -563,7 +639,7 @@ def solve_model_2_with_null_cumulative_biomass(t, a, b, c,m, x0):
     return solve_model_2(t, a, b,c, m, x0=x0, integral0=0.0)
 
 
-def figure_3():
+def Figure_3():
     """
     Create Figure 3 of the  paper. Plot data from Goudar 2005 and calibration of model M1 and M2 results in the same figure
 
@@ -595,7 +671,7 @@ def figure_3():
             )
             
             print('Metrics for Model 1')
-            legend_model_1 = compute_calibration_metrics(t_eval = ref_15_time,
+            legend_model_1,_,_,_ = compute_calibration_metrics(t_eval = ref_15_time,
                                         X_data = ref_15_data, 
                                         model_to_fit = solve_model_1_with_null_cumulative_biomass,
                                         popt = popt_ref_15,
@@ -639,7 +715,7 @@ def figure_3():
             )
             
             print('Metrics for Model 2')
-            legend_model_2 = compute_calibration_metrics(t_eval = ref_15_time,
+            legend_model_2,_,_,_ = compute_calibration_metrics(t_eval = ref_15_time,
                                         X_data = ref_15_data, 
                                         model_to_fit = solve_model_2_with_null_cumulative_biomass,
                                         popt = popt_ref_15,
@@ -705,9 +781,9 @@ def figure_3():
    
     
 
-def figure_4():
+def Figure_5():
     """
-    Create Figure 4 of the  paper. Plot data from Amrane 1998 and calibration of model M2 in the same figure
+    Create Figure 5 of the  paper. Plot data from Amrane 1998 and calibration of model M2 in the same figure
 
     Returns
     -------
@@ -757,7 +833,7 @@ def figure_4():
     )
     
     print('Metrics for Model 2')
-    legend_model_1 = compute_calibration_metrics(t_eval = combined_time,
+    legend_model_1,_,_,_ = compute_calibration_metrics(t_eval = combined_time,
                                 X_data = combined_x, 
                                 model_to_fit = fit_model,
                                 popt = popt,
@@ -855,7 +931,7 @@ def supplementary_figure_all_data():
             bounds=(0, [5, 1, 1, 1])  # Bounds for a, b, m, x0
         )
         print('Metrics for Model 1')
-        legend_model_1 = compute_calibration_metrics(t_eval = ref_15_time,
+        legend_model_1,_,_,_  = compute_calibration_metrics(t_eval = ref_15_time,
                                     X_data = ref_15_data, 
                                     model_to_fit = solve_model_1_with_null_cumulative_biomass,
                                     popt = popt_ref_15,
@@ -891,7 +967,7 @@ def supplementary_figure_all_data():
         )
         
         print('Metrics for Model 2')
-        legend_model_1 = compute_calibration_metrics(t_eval = ref_15_time,
+        legend_model_1,_,_,_  = compute_calibration_metrics(t_eval = ref_15_time,
                                     X_data = ref_15_data, 
                                     model_to_fit = solve_model_2_with_null_cumulative_biomass,
                                     popt = popt_ref_15,
@@ -928,14 +1004,116 @@ def supplementary_figure_all_data():
     # Show the plot
     fig.tight_layout()
     fig.show()
+    
+def Figure_4():
+    dict_data = get_data()
+    
+    exp_dict = dict_data['Amrane, 1998 (Figure 1 - 10 g/L)']
+    
+    # —————————— Experimental data ——————————
+    t_data = np.array(exp_dict['Time'])
+    x_data = np.array(exp_dict['Data'])
+    # ————— Fit for Model 1 —————
+    popt1, pcov1 = curve_fit(
+        lambda t, a, b, m, x0: solve_model1_full(t, a, b, m, x0)[0],
+        t_data, x_data,
+        p0=[0.4, 0.02, 0.01, 0.27],
+        bounds=(0, [5, 1, 1, 1])
+    )
+    _,aic1, rmse1, r21 = compute_calibration_metrics(
+        t_data, x_data,
+        lambda t, a, b, m, x0: solve_model1_full(t, a, b, m, x0)[0],
+        popt1, pcov1,
+        ['a','b','m','x0']
+    )
+    
+    # ————— Fit for Model 2 —————
+    popt2, pcov2 = curve_fit(
+        lambda t, a, b, c, m, x0: solve_model2_full(t, a, b, c, m, x0)[0],
+        t_data, x_data,
+        p0=[0.4, 0.02, 0.5, 0.01, 0.27],
+        bounds=(0, [10, 5, 5, 5, 5])
+    )
+    _,aic2, rmse2, r22 = compute_calibration_metrics(
+        t_data, x_data,
+        lambda t, a, b, c, m, x0: solve_model2_full(t, a, b, c, m, x0)[0],
+        popt2, pcov2,
+        ['a','b','c','m','x0']
+    )
+    # ————— Prepare smooth curves for plotting —————
+    t_fine = np.linspace(t_data.min(), t_data.max(), 300)
+    
+    # Model 1: solve on t_fine to obtain x(t) and X(t)
+    sol1_fine = solve_model1_full(t_fine, *popt1)
+    x_fit1 = sol1_fine[0]   # biomass
+    X_fit1 = sol1_fine[1]   # accumulated X
+    growth_term1 = popt1[0] * np.exp(-popt1[1] * X_fit1)  # growth rate
+    
+    # Model 2: solve on t_fine to obtain x(t) and X(t)
+    sol2_fine = solve_model2_full(t_fine, *popt2)
+    x_fit2 = sol2_fine[0]
+    X_fit2 = sol2_fine[1]
+    growth_term2 = popt2[0] / (1 + popt2[2] * np.exp(popt2[1] * X_fit2))  # growth rate
+    
+    # ————— Plot only the linear‐scale subplots —————
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), sharex=True)
+    
+    # -------- Left: Model 1 --------
+    ax1 = axes[0]
+    ax1.scatter(t_data, x_data, color='k', label='Experimental data')
+    ax1.plot(
+        t_fine,
+        x_fit1,
+        'b-',
+        label=f'Model 1 fit\n(AIC={aic1:.2f}, RMSE={rmse1:.3f})'
+    )
+    ax1.set_title('Model 1')
+    ax1.set_xlabel('Time (h)')
+    ax1.set_ylabel('Biomass (g/L)')
+    ax1.grid(True)
+    
+    ax1b = ax1.twinx()
+    ax1b.plot(t_fine, growth_term1, 'r--', label='Growth rate')
+    ax1b.set_ylabel('Growth rate')
+    
+    # -------- Right: Model 2 --------
+    ax2 = axes[1]
+    ax2.scatter(t_data, x_data, color='k', label='Experimental data')
+    ax2.plot(
+        t_fine,
+        x_fit2,
+        'g-',
+        label=f'Model 2 fit\n(AIC={aic2:.2f}, RMSE={rmse2:.3f})'
+    )
+    ax2.set_title('Model 2')
+    ax2.set_xlabel('Time (h)')
+    ax2.grid(True)
+    
+    ax2b = ax2.twinx()
+    ax2b.plot(t_fine, growth_term2, 'r--', label='Growth rate')
+    ax2b.set_ylabel('Growth rate')
+    
+    plt.tight_layout()
+    
+    # Save figure as SVG
+    #filename = 'model_fits_linear.svg'
+    #plt.savefig(filename, format='svg', dpi=300)
+    # If running in Colab or Jupyter, you can download or display as needed
+    # For example: from google.colab import files; files.download(filename)
+    
+    plt.show()
 # =============================================================================
 # MAIN
 # =============================================================================
 if __name__=='__main__': 
     plt.close('all')
     print('\n\nGenerate Figure 3')
-    figure_3()
+    Figure_3()
+    
     print('\n\nGenerate Figure 4')
-    figure_4()
+    Figure_4()
+    
+    print('\n\nGenerate Figure 5')
+    Figure_5()
     print('\n\nModels fit on all data')
     supplementary_figure_all_data()

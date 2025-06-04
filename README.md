@@ -15,10 +15,12 @@ by logically constraining the fit*,  Goudar et al., 2005 (with data from Ljumggr
  * *Influence of yeast extract concentrationon batch cultures of Lactobacillus helveticus: growth and production coupling*, Amrane et al., 1998.
 and presents the corresponding calibration of model M1 and M2 results.
 
-Therefore two figures are generated:
- * Figure 3 and 4 of the paper 
+Therefore three figures are generated:
+ * Figure 3, 4 and 5 of the paper 
 ![Figure3](images/Figure_3.png)  
 
 ![Figure4](images/Figure_4.png)
+
+![Figure5](images/Figure_5.png)
  
 The code is organized in three parts: Import, Functions and Main with a function per figure named accordingly. 
